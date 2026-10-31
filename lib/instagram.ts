@@ -23,7 +23,7 @@ type MediaItem = {
 };
 
 async function get<T>(path: string, params: Record<string, string>, token: string): Promise<T> {
-  const base = process.env.IG_API_BASE ?? "https://graph.instagram.com";
+  const base = process.env.IG_API_BASE || "https://graph.instagram.com";
   const url = new URL(`${base}/${path}`);
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
   url.searchParams.set("access_token", token);
@@ -113,13 +113,30 @@ async function fetchPost(item: MediaItem, token: string): Promise<{ post: Post; 
   };
 }
 
+type Profile = {
+  user_id: string;
+  username: string;
+  name?: string;
+  followers_count?: number;
+};
+
+async function fetchProfile(token: string): Promise<Profile> {
+  const userId = process.env.IG_USER_ID;
+  if (!userId) {
+    return get<Profile>("me", { fields: "user_id,username,name,followers_count" }, token);
+  }
+
+  // graph.facebook.com の IGユーザーには user_id フィールドがないため、指定されたIDを使う。
+  const profile = await get<Omit<Profile, "user_id">>(
+    userId,
+    { fields: "username,name,followers_count" },
+    token,
+  );
+  return { ...profile, user_id: userId };
+}
+
 export async function fetchInstagramAccount(token: string, days: number): Promise<AccountData> {
-  const me = await get<{
-    user_id: string;
-    username: string;
-    name?: string;
-    followers_count?: number;
-  }>("me", { fields: "user_id,username,name,followers_count" }, token);
+  const me = await fetchProfile(token);
 
   const now = Math.floor(Date.now() / 1000);
   const todayStart = now - (now % DAY_SECONDS);

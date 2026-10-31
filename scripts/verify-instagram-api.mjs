@@ -1,8 +1,9 @@
 // Instagram公式APIで必要な指標を取得できるかを確認する検証スクリプト。
 // 実行: node --env-file=.env.local scripts/verify-instagram-api.mjs
 
-const BASE = process.env.IG_API_BASE ?? "https://graph.instagram.com";
+const BASE = process.env.IG_API_BASE || "https://graph.instagram.com";
 const TOKEN = process.env.IG_ACCESS_TOKEN;
+const USER_ID = process.env.IG_USER_ID;
 
 const ACCOUNT_METRICS = [
   "reach",
@@ -59,6 +60,20 @@ async function checkMetric(label, path, metric, params) {
   }
 }
 
+async function fetchProfile() {
+  if (!USER_ID) {
+    return get("me", {
+      fields: "user_id,username,account_type,followers_count,media_count",
+    });
+  }
+
+  // graph.facebook.com の IGユーザーには user_id / account_type フィールドがない。
+  const profile = await get(USER_ID, {
+    fields: "username,followers_count,media_count",
+  });
+  return { ...profile, user_id: USER_ID };
+}
+
 async function main() {
   if (!TOKEN) {
     console.error("IG_ACCESS_TOKEN が未設定です。.env.local に設定してください。");
@@ -66,11 +81,10 @@ async function main() {
     return;
   }
 
-  const me = await get("me", {
-    fields: "user_id,username,account_type,followers_count,media_count",
-  });
+  const me = await fetchProfile();
+  const accountType = USER_ID ? "" : ` (${me.account_type})`;
   console.log(
-    `アカウント: @${me.username} (${me.account_type}) ` +
+    `アカウント: @${me.username}${accountType} ` +
       `フォロワー ${me.followers_count} / 投稿 ${me.media_count}`,
   );
 
