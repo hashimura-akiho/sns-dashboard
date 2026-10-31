@@ -3,7 +3,7 @@ import { mergeAccount } from "./metrics";
 import { readAccount, readLatestAccount, writeAccount } from "./store";
 import type { AccountData } from "./types";
 
-const BACKFILL_DAYS = 30;
+const BACKFILL_DAYS = 90;
 const RECENT_DAYS = 2;
 
 export async function syncInstagram(): Promise<AccountData> {

@@ -51,11 +51,6 @@ export function Dashboard({ account, canSync }: { account: AccountData; canSync:
   const { current, previous } = splitPeriod(account.daily, days);
   const summary = summarize(current);
   const previousSummary = summarize(previous);
-  const firstDate = current[0]?.date ?? "";
-  const posts =
-    days === null
-      ? account.posts
-      : account.posts.filter((post) => post.publishedAt.slice(0, 10) >= firstDate);
 
   async function sync() {
     setSyncing(true);
@@ -161,7 +156,7 @@ export function Dashboard({ account, canSync }: { account: AccountData; canSync:
             <p className="muted small">列名を押すと並べ替えできます。3秒離脱率は低いほど良い指標です</p>
           </div>
         </div>
-        <PostTable posts={posts} />
+        <PostTable posts={account.posts} />
       </section>
     </main>
   );

@@ -32,7 +32,7 @@ export function PostTable({ posts }: { posts: Post[] }) {
   const [sortKey, setSortKey] = useState<SortKey>("publishedAt");
   const [descending, setDescending] = useState(true);
 
-  if (posts.length === 0) return <p className="muted">この期間の投稿はありません。</p>;
+  if (posts.length === 0) return <p className="muted">投稿データはまだありません。</p>;
 
   function sortBy(key: SortKey) {
     if (key === sortKey) {
